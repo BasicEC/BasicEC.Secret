@@ -1,0 +1,17 @@
+<Project>
+    <PropertyGroup>
+        <NoWarn>NU5105,CS1591</NoWarn>
+        <LocalNugetFeed>$(MSBuildThisFileDirectory)/nuget</LocalNugetFeed>
+        <IncludeSymbols>true</IncludeSymbols>
+        <LangVersion>9</LangVersion>
+    </PropertyGroup>
+
+    <PropertyGroup>
+        <StyleCop_Analyzers_Version>1.1.118</StyleCop_Analyzers_Version>
+    </PropertyGroup>
+
+    <ItemGroup>
+        <AdditionalProbingPath Include="/usr/share/dotnet/sdk/NuGetFallbackFolder" />
+        <AdditionalProbingPath Include="/root/.nuget/packages" />
+    </ItemGroup>
+</Project>
