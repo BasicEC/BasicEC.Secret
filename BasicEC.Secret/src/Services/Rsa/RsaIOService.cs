@@ -1,3 +1,4 @@
+using System;
 using System.IO;
 using System.Security.Cryptography;
 using Serilog;
@@ -9,17 +10,25 @@ namespace BasicEC.Secret.Services.Rsa
     {
         private const string PrivateKeyFileName = "rsa";
         private const string PublicKeyFileName = "rsa.pub";
-        private const string KeysDirName = "rsa_store";
+
+        private static readonly Lazy<DirectoryInfo> StoreLazy = new(() =>
+        {
+            const string rsaStoreEnv = "BASIC_RSA_STORE";
+            const string defaultRsaStore = "rsa_store";
+            var path = Environment.GetEnvironmentVariable(rsaStoreEnv);
+            path ??= Path.Combine(Program.RootDir.FullName, defaultRsaStore);
+            return new DirectoryInfo(path);
+        });
+
+        private static DirectoryInfo Store => StoreLazy.Value;
 
         public static DirectoryInfo CreateStore(string name)
         {
-            // todo get rsa_store from Env
-            var store = new DirectoryInfo(Path.Combine(Program.RootDir.FullName, KeysDirName));
-            if (!store.Exists)
+            if (!Store.Exists)
             {
                 // todo: catch exceptions (e.g. lack of permissions)
                 Log.Information("Create rsa store since it doesn't exists");
-                store.Create();
+                Store.Create();
             }
 
             if (string.IsNullOrWhiteSpace(name))
@@ -27,7 +36,7 @@ namespace BasicEC.Secret.Services.Rsa
                 throw new CommandException("Name can't be empty");
             }
 
-            var keysDir = new DirectoryInfo(Path.Combine(store.FullName, name));
+            var keysDir = new DirectoryInfo(Path.Combine(Store.FullName, name));
             if (!keysDir.Exists)
             {
                 Log.Information("Create store for key {Name}", name);
@@ -75,7 +84,7 @@ namespace BasicEC.Secret.Services.Rsa
         public static FileInfo GetKeyFile(string name, bool isPrivate)
         {
             var fileName = isPrivate ? PrivateKeyFileName : PublicKeyFileName;
-            return new FileInfo(Path.Combine(Program.RootDir.FullName, KeysDirName, name, fileName));
+            return new FileInfo(Path.Combine(Store.FullName, name, fileName));
         }
     }
 }
