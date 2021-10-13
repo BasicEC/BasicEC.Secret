@@ -22,7 +22,7 @@ namespace BasicEC.Secret
                 .WriteTo.File($"{RootDir!.FullName}/logs/log-.txt", rollingInterval: RollingInterval.Month)
                 .CreateLogger();
 
-            var commands = new[] { typeof(DecryptCommand), typeof(EncryptCommand), typeof(GenRsaKeysCommand) };
+            var commands = new[] { typeof(DecryptCommand), typeof(EncryptCommand), typeof(GenRsaKeysCommand), typeof(ImportRsaKeyCommand) };
             var executors = new[] { new CommandExecutor() };
 
             try
