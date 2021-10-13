@@ -1,11 +1,8 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Diagnostics;
 using System.IO;
 using System.Reflection;
-using System.Security.Cryptography;
 using BasicEC.Secret.Commands;
-using BasicEC.Secret.Services;
 using CommandLine;
 using Serilog;
 
@@ -13,14 +10,6 @@ namespace BasicEC.Secret
 {
     class Program
     {
-        private const string PathBase = @"/home/basicec/RiderProjects/BasicEC.Secret/";
-        private const string PrivateKeyPath = PathBase + "rsa.pem";
-        private const string PubKeyPath = PathBase + "pub.pem";
-
-        private const string InputPath = PathBase + "kaizodude-kaizo.gif";
-        private const string OutputPath = PathBase + "encrypted.gif";
-        private const string OutputDecryptPath = PathBase + "decrypted.gif";
-
         public static DirectoryInfo RootDir { get; private set; }
 
         public static void Main(string[] args)
@@ -39,10 +28,6 @@ namespace BasicEC.Secret
             try
             {
                 Parser.Default.ParseArguments(args, commands).WithParsed<ICommand>(_ => RunCommand(_, executors));
-            }
-            catch (Exception e)
-            {
-                Log.Logger.Error(e, "Unexpected error");
             }
             finally
             {
@@ -70,7 +55,7 @@ namespace BasicEC.Secret
                 }
             }
 
-            Console.WriteLine($"Executor for command {cmd.GetType().FullName} not found.");
+            Log.Logger.Warning("Executor for command {Command} not found.", cmd.GetType().FullName);
         }
     }
 }
