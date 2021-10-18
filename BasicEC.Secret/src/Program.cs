@@ -8,7 +8,7 @@ using Serilog;
 
 namespace BasicEC.Secret
 {
-    class Program
+    internal static class Program
     {
         public static DirectoryInfo RootDir { get; private set; }
 
@@ -22,8 +22,17 @@ namespace BasicEC.Secret
                 .WriteTo.File($"{RootDir!.FullName}/logs/log-.txt", rollingInterval: RollingInterval.Month)
                 .CreateLogger();
 
-            var commands = new[] { typeof(DecryptCommand), typeof(EncryptCommand), typeof(GenRsaKeysCommand), typeof(ImportRsaKeyCommand) };
-            var executors = new[] { new CommandExecutor() };
+            var commands = new[]
+            {
+                typeof(DecryptCommand),
+                typeof(EncryptCommand),
+                typeof(GenRsaKeysCommand),
+                typeof(ImportRsaKeyCommand),
+            };
+            var executors = new[]
+            {
+                new CommandExecutor(),
+            };
 
             try
             {
@@ -52,6 +61,7 @@ namespace BasicEC.Secret
                 catch (Exception e)
                 {
                     Log.Logger.Error(e, "Unexpected error");
+                    return;
                 }
             }
 

@@ -38,8 +38,8 @@ namespace BasicEC.Secret.Services.Rsa
         // todo improve this code
         public static void Encrypt(string key, string fileName, string @out)
         {
-            var rsa = RsaIOService.ReadKey(key, false);
             fileName.CheckFileExists();
+            var rsa = RsaIOService.ReadKey(key, false);
             var data = File.ReadAllBytes(fileName);
             var encrypted = rsa.Encrypt(data);
             File.WriteAllBytes(@out, encrypted);
@@ -48,8 +48,8 @@ namespace BasicEC.Secret.Services.Rsa
         // todo improve this code
         public static void Decrypt(string key, string fileName, string @out)
         {
-            var rsa = RsaIOService.ReadKey(key, true);
             fileName.CheckFileExists();
+            var rsa = RsaIOService.ReadKey(key, true);
             var encrypted = File.ReadAllBytes(fileName);
             var data = rsa.Decrypt(encrypted);
             File.WriteAllBytes(@out, data);

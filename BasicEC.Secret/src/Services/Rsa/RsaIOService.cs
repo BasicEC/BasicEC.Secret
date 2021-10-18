@@ -27,7 +27,7 @@ namespace BasicEC.Secret.Services.Rsa
             if (!Store.Exists)
             {
                 // todo: catch exceptions (e.g. lack of permissions)
-                Log.Information("Create rsa store since it doesn't exists");
+                Log.Logger.Information("Create rsa store since it doesn't exists");
                 Store.Create();
             }
 
@@ -39,7 +39,7 @@ namespace BasicEC.Secret.Services.Rsa
             var keysDir = new DirectoryInfo(Path.Combine(Store.FullName, name));
             if (!keysDir.Exists)
             {
-                Log.Information("Create store for key {Name}", name);
+                Log.Logger.Information("Create store for key {Name}", name);
                 keysDir.Create();
             }
 
