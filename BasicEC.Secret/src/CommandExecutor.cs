@@ -27,6 +27,9 @@ namespace BasicEC.Secret
                 case ImportRsaKeyCommand cmd:
                     RsaService.ImportKeyToStore(cmd.Name, cmd.Input);
                     break;
+                case ListRsaKeysCommand _:
+                    RsaService.ListStoredKeys();
+                    break;
             }
         }
     }

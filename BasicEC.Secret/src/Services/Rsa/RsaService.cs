@@ -35,6 +35,11 @@ namespace BasicEC.Secret.Services.Rsa
             RsaIOService.WriteKey(rsa, publicKeyFile, false);
         }
 
+        public static void ListStoredKeys()
+        {
+            RsaIOService.ListStoredKeys();
+        }
+
         // todo improve this code
         public static void Encrypt(string key, string fileName, string @out)
         {

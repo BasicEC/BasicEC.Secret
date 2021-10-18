@@ -5,7 +5,7 @@ using System.Security.Cryptography;
 
 namespace BasicEC.Secret.Services.Rsa
 {
-    public static class RsaExtensions
+    internal static class RsaExtensions
     {
         #region Export Utils
 
