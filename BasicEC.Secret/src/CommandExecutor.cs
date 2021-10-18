@@ -1,4 +1,5 @@
 using BasicEC.Secret.Commands;
+using BasicEC.Secret.Commands.Keys;
 using BasicEC.Secret.Services.Rsa;
 
 namespace BasicEC.Secret
@@ -20,7 +21,7 @@ namespace BasicEC.Secret
                 case EncryptCommand cmd:
                     RsaService.Encrypt(cmd.Key, cmd.File, cmd.Output);
                     break;
-                case GenRsaKeysCommand cmd:
+                case GenRsaKeyCommand cmd:
                     RsaService.GenerateRsaKey(cmd.Name, cmd.Length);
                     break;
                 case ImportRsaKeyCommand cmd:

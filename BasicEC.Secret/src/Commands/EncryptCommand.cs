@@ -1,3 +1,4 @@
+using BasicEC.Secret.Commands.Keys;
 using CommandLine;
 using JetBrains.Annotations;
 
@@ -12,7 +13,7 @@ namespace BasicEC.Secret.Commands
         [Option('f', "file", Required = true, HelpText = "File to encrypt.")]
         public string File { get; [UsedImplicitly] set; }
 
-        [Option('k', "key", Default = GenRsaKeysCommand.DefaultKeyName,
+        [Option('k', "key", Default = GenRsaKeyCommand.DefaultKeyName,
             HelpText = "Name of the key that will be used.")]
         public string Key { get; [UsedImplicitly] set; }
     }

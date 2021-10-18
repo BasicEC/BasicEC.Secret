@@ -1,10 +1,10 @@
 using CommandLine;
 using JetBrains.Annotations;
 
-namespace BasicEC.Secret.Commands
+namespace BasicEC.Secret.Commands.Keys
 {
     [Verb("gen", HelpText = "Generate rsa key pair.")]
-    public class GenRsaKeysCommand : CommandBase
+    public class GenRsaKeyCommand : CommandBase
     {
         public const string DefaultKeyName = "default";
 

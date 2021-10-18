@@ -3,6 +3,8 @@ using System.Collections.Generic;
 using System.IO;
 using System.Reflection;
 using BasicEC.Secret.Commands;
+using BasicEC.Secret.Commands.Keys;
+using BasicEC.Secret.Services;
 using CommandLine;
 using Serilog;
 
@@ -26,8 +28,7 @@ namespace BasicEC.Secret
             {
                 typeof(DecryptCommand),
                 typeof(EncryptCommand),
-                typeof(GenRsaKeysCommand),
-                typeof(ImportRsaKeyCommand),
+                typeof(RsaKeyCommands),
             };
             var executors = new[]
             {
@@ -36,7 +37,7 @@ namespace BasicEC.Secret
 
             try
             {
-                Parser.Default.ParseArguments(args, commands).WithParsed<ICommand>(_ => RunCommand(_, executors));
+                Parser.Default.ParseVerbs(args, commands).WithParsed<ICommand>(_ => RunCommand(_, executors));
             }
             finally
             {

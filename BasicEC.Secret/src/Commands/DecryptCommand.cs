@@ -1,3 +1,4 @@
+using BasicEC.Secret.Commands.Keys;
 using CommandLine;
 
 namespace BasicEC.Secret.Commands
@@ -11,7 +12,7 @@ namespace BasicEC.Secret.Commands
         [Option('f', "file", Required = true, HelpText = "File to decrypt.")]
         public string File { get; set; }
 
-        [Option('k', "key", Default = GenRsaKeysCommand.DefaultKeyName,
+        [Option('k', "key", Default = GenRsaKeyCommand.DefaultKeyName,
             HelpText = "Name of the key that will be used. (default if not specified)")]
         public string Key { get; set; }
     }

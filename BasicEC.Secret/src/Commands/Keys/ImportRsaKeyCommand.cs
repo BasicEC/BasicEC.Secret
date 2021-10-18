@@ -1,7 +1,7 @@
 using CommandLine;
 using JetBrains.Annotations;
 
-namespace BasicEC.Secret.Commands
+namespace BasicEC.Secret.Commands.Keys
 {
     [Verb("import", HelpText = "Import rsa key.")]
     public class ImportRsaKeyCommand : CommandBase
