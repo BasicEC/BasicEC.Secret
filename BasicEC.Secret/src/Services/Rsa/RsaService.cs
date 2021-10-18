@@ -40,6 +40,11 @@ namespace BasicEC.Secret.Services.Rsa
             RsaIOService.ListStoredKeys();
         }
 
+        public static void RemoveKey(string name, bool force)
+        {
+            RsaIOService.RemoveKey(name, force);
+        }
+
         // todo improve this code
         public static void Encrypt(string key, string fileName, string @out)
         {

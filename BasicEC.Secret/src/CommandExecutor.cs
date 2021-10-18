@@ -30,6 +30,9 @@ namespace BasicEC.Secret
                 case ListRsaKeysCommand _:
                     RsaService.ListStoredKeys();
                     break;
+                case RemoveRsaKeyCommand cmd:
+                    RsaService.RemoveKey(cmd.Name, cmd.Force);
+                    break;
             }
         }
     }

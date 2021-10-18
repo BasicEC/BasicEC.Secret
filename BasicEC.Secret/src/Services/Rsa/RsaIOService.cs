@@ -1,7 +1,8 @@
 using System;
+using System.Collections.Generic;
 using System.IO;
 using System.Security.Cryptography;
-using System.Text;
+using BasicEC.Secret.Models;
 using Serilog;
 
 namespace BasicEC.Secret.Services.Rsa
@@ -48,29 +49,35 @@ namespace BasicEC.Secret.Services.Rsa
 
         public static void ListStoredKeys()
         {
-            var builder = new StringBuilder();
+            var keys = new List<RsaKeyStoreInfo>();
             foreach (var inner in Store.EnumerateDirectories())
             {
-                builder.Clear();
-                builder.Append(inner.Name);
-
-                var privateKeyFile = GetKeyFile(inner.Name, true);
-                var publicKeyFile = GetKeyFile(inner.Name, false);
-                if (!privateKeyFile.Exists && !publicKeyFile.Exists)
+                keys.Add(new RsaKeyStoreInfo
                 {
-                    builder.Append(": key files are missing");
-                }
-                else if (!privateKeyFile.Exists)
-                {
-                    builder.Append(": public key only");
-                }
-                else if (!publicKeyFile.Exists)
-                {
-                    builder.Append(": private key only");
-                }
-
-                Console.WriteLine(builder);
+                    Name = inner.Name,
+                    HasPrivateKey = GetKeyFile(inner.Name, true).Exists,
+                    HasPublicKey = GetKeyFile(inner.Name, false).Exists,
+                });
             }
+
+            ConsoleService.Write(keys);
+        }
+
+        public static void RemoveKey(string name, bool force)
+        {
+            var keysDir = new DirectoryInfo(Path.Combine(Store.FullName, name));
+            if (!keysDir.Exists)
+            {
+                Log.Logger.Information("Rsa key ({Name}) not found", name);
+                return;
+            }
+
+            if (!force && !ConsoleService.Confirm($"Are you sure you want remove rsa key {name}"))
+            {
+                return;
+            }
+
+            Directory.Delete(keysDir.FullName, true);
         }
 
         public static RSACryptoServiceProvider ReadKey(string path)

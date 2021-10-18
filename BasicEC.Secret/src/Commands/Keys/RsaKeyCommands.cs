@@ -7,7 +7,8 @@ namespace BasicEC.Secret.Commands.Keys
     [SubVerbs(
         typeof(ImportRsaKeyCommand),
         typeof(GenRsaKeyCommand),
-        typeof(ListRsaKeysCommand)
+        typeof(ListRsaKeysCommand),
+        typeof(RemoveRsaKeyCommand)
     )]
     public class RsaKeyCommands
     {
