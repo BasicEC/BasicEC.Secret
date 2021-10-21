@@ -5,12 +5,12 @@ namespace BasicEC.Secret.Services
 {
     public static class FileInfoExtensions
     {
-        public static void CheckFileExists(this string file)
+        public static FileInfo CheckFileExists(this string file)
         {
-            new FileInfo(file).CheckExists();
+            return new FileInfo(file).CheckExists();
         }
 
-        public static void CheckExists(this FileInfo file)
+        public static FileInfo CheckExists(this FileInfo file)
         {
             if (file == null)
             {
@@ -21,6 +21,8 @@ namespace BasicEC.Secret.Services
             {
                 throw new CommandException($"File not found {file.FullName}");
             }
+
+            return file;
         }
     }
 }

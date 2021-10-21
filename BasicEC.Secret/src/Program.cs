@@ -1,7 +1,9 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.IO;
 using System.Reflection;
+using System.Threading.Tasks;
 using BasicEC.Secret.Commands;
 using BasicEC.Secret.Commands.Keys;
 using BasicEC.Secret.Services;
@@ -14,7 +16,7 @@ namespace BasicEC.Secret
     {
         public static DirectoryInfo RootDir { get; private set; }
 
-        public static void Main(string[] args)
+        public static async Task Main(string[] args)
         {
             var root = new FileInfo(Assembly.GetExecutingAssembly().Location);
             RootDir = root.Directory;
@@ -37,7 +39,7 @@ namespace BasicEC.Secret
 
             try
             {
-                Parser.Default.ParseVerbs(args, commands).WithParsed<ICommand>(_ => RunCommand(_, executors));
+                await Parser.Default.ParseVerbs(args, commands).WithParsedAsync<ICommand>(_ => RunCommandAsync(_, executors));
             }
             finally
             {
@@ -45,13 +47,17 @@ namespace BasicEC.Secret
             }
         }
 
-        private static void RunCommand(ICommand cmd, IEnumerable<ICommandExecutor> executors)
+        private static async Task RunCommandAsync(ICommand cmd, IEnumerable<ICommandExecutor> executors)
         {
+            var stopwatch = new Stopwatch();
+            stopwatch.Start();
             foreach (var executor in executors)
             {
                 try
                 {
-                    cmd.Apply(executor);
+                    await cmd.ApplyAsync(executor);
+                    stopwatch.Stop();
+                    Log.Logger.Information("Command executed: {Command}; Time: {Time}ms", cmd.GetType(), stopwatch.ElapsedMilliseconds);
                     return;
                 }
                 catch (CommandException e)

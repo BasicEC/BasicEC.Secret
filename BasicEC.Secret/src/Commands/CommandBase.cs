@@ -1,12 +1,14 @@
+using System.Threading.Tasks;
+
 namespace BasicEC.Secret.Commands
 {
     public interface ICommand
     {
-        void Apply(ICommandExecutor executor);
+        Task ApplyAsync(ICommandExecutor executor);
     }
 
     public class CommandBase : ICommand
     {
-        public void Apply(ICommandExecutor executor) => executor.Execute(this);
+        public Task ApplyAsync(ICommandExecutor executor) => executor.ExecuteAsync(this);
     }
 }

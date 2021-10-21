@@ -1,5 +1,6 @@
 using System;
 using System.Reflection;
+using System.Threading.Tasks;
 using CommandLine;
 
 namespace BasicEC.Secret.Services
@@ -37,6 +38,14 @@ namespace BasicEC.Secret.Services
                 }
             }
             return parser.ParseArguments(args, types);
+        }
+
+        public static async Task WithParsedAsync<T>(this ParserResult<object> result, Func<T, Task> action)
+        {
+            if (result is Parsed<object> { Value: T } parsed)
+            {
+                await action((T)parsed.Value);
+            }
         }
     }
 }

@@ -1,5 +1,9 @@
+using System;
+using System.Diagnostics.CodeAnalysis;
 using System.IO;
 using System.Security.Cryptography;
+using System.Threading.Tasks;
+using Serilog;
 
 namespace BasicEC.Secret.Services.Rsa
 {
@@ -35,34 +39,22 @@ namespace BasicEC.Secret.Services.Rsa
             RsaIOService.WriteKey(rsa, publicKeyFile, false);
         }
 
-        public static void ListStoredKeys()
-        {
-            RsaIOService.ListStoredKeys();
-        }
+        public static void ListStoredKeys() { RsaIOService.ListStoredKeys(); }
 
-        public static void RemoveKey(string name, bool force)
-        {
-            RsaIOService.RemoveKey(name, force);
-        }
+        public static void RemoveKey(string name, bool force) { RsaIOService.RemoveKey(name, force); }
 
-        // todo improve this code
-        public static void Encrypt(string key, string fileName, string @out)
+        public static async Task EncryptAsync(string key, string input, string output, int workers)
         {
-            fileName.CheckFileExists();
             var rsa = RsaIOService.ReadKey(key, false);
-            var data = File.ReadAllBytes(fileName);
-            var encrypted = rsa.Encrypt(data);
-            File.WriteAllBytes(@out, encrypted);
+            var conveyor = new FileDataConveyor(input, output, rsa.GetMaxDataLength(), _ => rsa.Encrypt(_), workers);
+            await conveyor.ProcessDataAsync();
         }
 
-        // todo improve this code
-        public static void Decrypt(string key, string fileName, string @out)
+        public static async Task DecryptAsync(string key, string input, string output, int workers)
         {
-            fileName.CheckFileExists();
             var rsa = RsaIOService.ReadKey(key, true);
-            var encrypted = File.ReadAllBytes(fileName);
-            var data = rsa.Decrypt(encrypted);
-            File.WriteAllBytes(@out, data);
+            var conveyor = new FileDataConveyor(input, output, rsa.GetEncryptedDataLength(), _ => rsa.Decrypt(_), workers);
+            await conveyor.ProcessDataAsync();
         }
     }
 }

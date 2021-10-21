@@ -13,8 +13,10 @@ namespace BasicEC.Secret.Commands
         [Option('f', "file", Required = true, HelpText = "File to decrypt.")]
         public string File { get; [UsedImplicitly] set; }
 
-        [Option('k', "key", Default = GenRsaKeyCommand.DefaultKeyName,
-            HelpText = "Name of the key that will be used. (default if not specified)")]
+        [Option('k', "key", Default = GenRsaKeyCommand.DefaultKeyName, HelpText = "Name of the key that will be used.")]
         public string Key { get; [UsedImplicitly] set; }
+
+        [Option('w', "workers", Default = 4, HelpText = "Number threads to perform decryption")]
+        public int Workers { get; [UsedImplicitly] set; }
     }
 }
