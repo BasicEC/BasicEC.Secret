@@ -3,7 +3,7 @@ using System.Reflection;
 using System.Threading.Tasks;
 using CommandLine;
 
-namespace BasicEC.Secret.Services
+namespace BasicEC.Secret.Model.Extensions
 {
     [AttributeUsage(AttributeTargets.Class, Inherited = false)]
     public class SubVerbsAttribute : Attribute

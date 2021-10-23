@@ -1,9 +1,8 @@
 using System.Threading.Tasks;
-using BasicEC.Secret.Commands;
-using BasicEC.Secret.Commands.Keys;
-using BasicEC.Secret.Services.Rsa;
+using BasicEC.Secret.Model.Commands.Keys;
+using BasicEC.Secret.Model.Rsa;
 
-namespace BasicEC.Secret
+namespace BasicEC.Secret.Model.Commands
 {
     public interface ICommandExecutor
     {

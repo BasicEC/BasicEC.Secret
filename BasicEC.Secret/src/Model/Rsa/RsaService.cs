@@ -1,11 +1,8 @@
-using System;
-using System.Diagnostics.CodeAnalysis;
-using System.IO;
 using System.Security.Cryptography;
 using System.Threading.Tasks;
-using Serilog;
+using BasicEC.Secret.Model.Commands;
 
-namespace BasicEC.Secret.Services.Rsa
+namespace BasicEC.Secret.Model.Rsa
 {
     public static class RsaService
     {

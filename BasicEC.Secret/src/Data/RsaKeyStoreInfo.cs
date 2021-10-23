@@ -1,6 +1,6 @@
 using System.Text;
 
-namespace BasicEC.Secret.Models
+namespace BasicEC.Secret.Data
 {
     public class RsaKeyStoreInfo
     {

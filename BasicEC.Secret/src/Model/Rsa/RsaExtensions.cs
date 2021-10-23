@@ -2,7 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Security.Cryptography;
 
-namespace BasicEC.Secret.Services.Rsa
+namespace BasicEC.Secret.Model.Rsa
 {
     internal static class RsaExtensions
     {

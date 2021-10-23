@@ -1,7 +1,7 @@
 using System;
 using System.Collections.Generic;
 
-namespace BasicEC.Secret.Services
+namespace BasicEC.Secret.Model
 {
     public static class ConsoleService
     {

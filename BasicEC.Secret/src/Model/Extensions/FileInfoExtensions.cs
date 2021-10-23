@@ -1,7 +1,8 @@
 using System;
 using System.IO;
+using BasicEC.Secret.Model.Commands;
 
-namespace BasicEC.Secret.Services
+namespace BasicEC.Secret.Model.Extensions
 {
     public static class FileInfoExtensions
     {

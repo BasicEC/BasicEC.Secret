@@ -5,7 +5,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Serilog;
 
-namespace BasicEC.Secret.Services
+namespace BasicEC.Secret.Model
 {
     public class ProcessingQueue<T> : IDisposable
     {

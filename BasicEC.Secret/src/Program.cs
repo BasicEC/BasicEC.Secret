@@ -4,9 +4,9 @@ using System.Diagnostics;
 using System.IO;
 using System.Reflection;
 using System.Threading.Tasks;
-using BasicEC.Secret.Commands;
-using BasicEC.Secret.Commands.Keys;
-using BasicEC.Secret.Services;
+using BasicEC.Secret.Model.Commands;
+using BasicEC.Secret.Model.Commands.Keys;
+using BasicEC.Secret.Model.Extensions;
 using CommandLine;
 using Serilog;
 

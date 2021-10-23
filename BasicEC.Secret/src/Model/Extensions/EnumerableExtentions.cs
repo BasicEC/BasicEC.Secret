@@ -1,7 +1,7 @@
 using System.Collections.Generic;
 using System.Linq;
 
-namespace BasicEC.Secret.Services
+namespace BasicEC.Secret.Model.Extensions
 {
     public static class EnumerableExtensions
     {

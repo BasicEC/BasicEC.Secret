@@ -1,7 +1,7 @@
 using System;
 using JetBrains.Annotations;
 
-namespace BasicEC.Secret
+namespace BasicEC.Secret.Model.Commands
 {
     public class CommandException : Exception
     {

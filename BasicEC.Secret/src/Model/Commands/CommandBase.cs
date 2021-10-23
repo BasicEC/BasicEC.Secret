@@ -1,6 +1,6 @@
 using System.Threading.Tasks;
 
-namespace BasicEC.Secret.Commands
+namespace BasicEC.Secret.Model.Commands
 {
     public interface ICommand
     {

@@ -2,10 +2,12 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Security.Cryptography;
-using BasicEC.Secret.Models;
+using BasicEC.Secret.Data;
+using BasicEC.Secret.Model.Commands;
+using BasicEC.Secret.Model.Extensions;
 using Serilog;
 
-namespace BasicEC.Secret.Services.Rsa
+namespace BasicEC.Secret.Model.Rsa
 {
     // ReSharper disable once InconsistentNaming
     internal static class RsaIOService

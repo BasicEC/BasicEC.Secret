@@ -1,7 +1,7 @@
 using CommandLine;
 using JetBrains.Annotations;
 
-namespace BasicEC.Secret.Commands.Keys
+namespace BasicEC.Secret.Model.Commands.Keys
 {
     [Verb("rm", HelpText = "Remove RSA key.")]
     public class RemoveRsaKeyCommand : CommandBase

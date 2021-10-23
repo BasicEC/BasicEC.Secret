@@ -4,9 +4,10 @@ using System.Diagnostics.CodeAnalysis;
 using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
+using BasicEC.Secret.Model.Extensions;
 using Serilog;
 
-namespace BasicEC.Secret.Services
+namespace BasicEC.Secret.Model
 {
     public class FileDataConveyor
     {

@@ -1,7 +1,7 @@
-using BasicEC.Secret.Services;
+using BasicEC.Secret.Model.Extensions;
 using CommandLine;
 
-namespace BasicEC.Secret.Commands.Keys
+namespace BasicEC.Secret.Model.Commands.Keys
 {
     [Verb("key", HelpText = "Key management commands.")]
     [SubVerbs(
