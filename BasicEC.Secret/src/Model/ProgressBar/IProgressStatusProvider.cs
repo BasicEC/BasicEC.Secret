@@ -4,6 +4,6 @@ namespace BasicEC.Secret.Model.ProgressBar
 {
     public interface IProgressStatusProvider
     {
-        IDisposable SubscribeOnProgressMovedForward(Action<ProgressStatus> action);
+        IDisposable SubscribeOnProgressStatus(IObserver<ProgressStatus> observer);
     }
 }

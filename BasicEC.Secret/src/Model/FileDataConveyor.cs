@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
 using System.IO;
 using System.Linq;
+using System.Reactive.Subjects;
 using System.Threading.Tasks;
 using BasicEC.Secret.Model.Extensions;
 using BasicEC.Secret.Model.ProgressBar;
@@ -19,8 +20,7 @@ namespace BasicEC.Secret.Model
         private readonly FileInfo _source;
         private readonly FileInfo _destination;
         private readonly Func<byte[], byte[]> _processor;
-
-        private event Action<ProgressStatus> OnBatchProcessed;
+        private readonly BehaviorSubject<ProgressStatus> _processStatus;
 
         public readonly long TotalBatches;
 
@@ -39,6 +39,11 @@ namespace BasicEC.Secret.Model
             _destination = new FileInfo(destination);
             _processor = processor;
             TotalBatches = Math.DivRem(_source.Length, batchSize, out var rem) + Math.Sign(rem);
+            _processStatus = new BehaviorSubject<ProgressStatus>(new ProgressStatus
+            {
+                ProcessedTasks = 0,
+                TotalTasks = TotalBatches
+            });
         }
 
         [SuppressMessage("ReSharper", "AccessToDisposedClosure")]
@@ -69,8 +74,12 @@ namespace BasicEC.Secret.Model
             var processedBatches = 0;
             return async @event =>
             {
-                OnBatchProcessed?.Invoke(new ProgressStatus
-                    { ProcessedTasks = ++processedBatches, TotalTasks = TotalBatches });
+                _processStatus.OnNext(new ProgressStatus
+                {
+                    ProcessedTasks = ++processedBatches,
+                    TotalTasks = TotalBatches
+                });
+
                 writeEvents.Add(@event.Seq, @event.Data);
 
                 if (@event.Seq != cursor)
@@ -86,6 +95,11 @@ namespace BasicEC.Secret.Model
                 foreach (var pair in readyToWrite)
                 {
                     writeEvents.Remove(pair.Key);
+                }
+
+                if (processedBatches == TotalBatches)
+                {
+                    _processStatus.OnCompleted();
                 }
             };
         }
@@ -120,25 +134,15 @@ namespace BasicEC.Secret.Model
             } while (read > 0);
         }
 
-        public IDisposable SubscribeOnProgressMovedForward(Action<ProgressStatus> action)
+        public IDisposable SubscribeOnProgressStatus(IObserver<ProgressStatus> observer)
         {
-            OnBatchProcessed += action;
-            return new Subscription(() => OnBatchProcessed -= action);
+            return _processStatus.Subscribe(observer);
         }
 
         private class DataEvent
         {
             public byte[] Data { get; init; }
             public int Seq { get; init; }
-        }
-
-        private class Subscription : IDisposable
-        {
-            private readonly Action _dispose;
-
-            public Subscription(Action dispose) { _dispose = dispose; }
-
-            public void Dispose() { _dispose?.Invoke(); }
         }
     }
 }

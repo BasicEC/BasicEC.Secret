@@ -2,12 +2,16 @@
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
+using System.Reactive.Subjects;
 using System.Reflection;
 using System.Threading.Tasks;
 using BasicEC.Secret.Model.Commands;
 using BasicEC.Secret.Model.Commands.Keys;
 using BasicEC.Secret.Model.Extensions;
+using BasicEC.Secret.Model.ProgressBar;
+using BasicEC.Secret.Model.Rsa;
 using CommandLine;
+using Microsoft.Extensions.DependencyInjection;
 using Serilog;
 
 namespace BasicEC.Secret
@@ -22,9 +26,18 @@ namespace BasicEC.Secret
             RootDir = root.Directory;
             Log.Logger = new LoggerConfiguration()
                 .MinimumLevel.Information()
-                .WriteTo.Console()
                 .WriteTo.File($"{RootDir!.FullName}/logs/log-.txt", rollingInterval: RollingInterval.Month)
                 .CreateLogger();
+
+            var serviceProvider = new ServiceCollection()
+                .AddTransient<IProgressStatusWriter, ConsoleProgressStatusWriter>()
+                .AddSingleton<IRsaStore, LocalRsaStore>()
+                .BuildServiceProvider();
+
+            var executors = new[]
+            {
+                new CommandExecutor(serviceProvider),
+            };
 
             var commands = new[]
             {
@@ -32,32 +45,26 @@ namespace BasicEC.Secret
                 typeof(EncryptCommand),
                 typeof(RsaKeyCommands),
             };
-            var executors = new[]
-            {
-                new CommandExecutor(),
-            };
 
             try
             {
+                Console.CursorVisible = false;
                 await Parser.Default.ParseVerbs(args, commands).WithParsedAsync<ICommand>(_ => RunCommandAsync(_, executors));
             }
             finally
             {
+                Console.CursorVisible = true;
                 Log.CloseAndFlush();
             }
         }
 
         private static async Task RunCommandAsync(ICommand cmd, IEnumerable<ICommandExecutor> executors)
         {
-            var stopwatch = new Stopwatch();
-            stopwatch.Start();
             foreach (var executor in executors)
             {
                 try
                 {
                     await cmd.ApplyAsync(executor);
-                    stopwatch.Stop();
-                    Log.Logger.Information("Command executed: {Command}; Time: {Time}ms", cmd.GetType(), stopwatch.ElapsedMilliseconds);
                     return;
                 }
                 catch (CommandException e)
@@ -72,7 +79,7 @@ namespace BasicEC.Secret
                 }
             }
 
-            Log.Logger.Warning("Executor for command {Command} not found.", cmd.GetType().FullName);
+            Log.Logger.Warning("Executor for command {Command} not found.", cmd.GetType().Name);
         }
     }
 }

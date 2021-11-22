@@ -1,26 +1,27 @@
 using System;
+using Serilog;
 
 namespace BasicEC.Secret.Model.ProgressBar
 {
-    public sealed class ConsoleProgressStatusWriter : ProgressStatusWriter
+    public sealed class ConsoleProgressStatusWriter : IProgressStatusWriter
     {
         private double _percentageOfProgress;
 
-        public ConsoleProgressStatusWriter(IProgressStatusProvider provider)
-            : base(provider)
+        public void OnCompleted() { Console.WriteLine(); }
+
+        public void OnError(Exception error)
         {
-            Console.CursorVisible = false;
+            Log.Logger.Error(error, "An error occurred during the execution of the process");
         }
 
-        protected override void WriteProgressStatus(ProgressStatus status)
+        public void OnNext(ProgressStatus value)
         {
-            var isLast = status.ProcessedTasks == status.TotalTasks;
-            var @new = (double)status.ProcessedTasks / status.TotalTasks * 100d;
+            var isLast = value.ProcessedTasks == value.TotalTasks;
+            var @new = (double)value.ProcessedTasks / value.TotalTasks * 100d;
             if (@new - _percentageOfProgress < 0.1 && !isLast) return;
 
             _percentageOfProgress = @new;
-            var ending = isLast ? '\n' : ' ';
-            InteractionService.ShowAtTheBeginning($"Progress: {_percentageOfProgress:F1}%{ending}");
+            InteractionService.ShowAtTheBeginning($"Progress: {_percentageOfProgress:F1}%");
         }
     }
 }

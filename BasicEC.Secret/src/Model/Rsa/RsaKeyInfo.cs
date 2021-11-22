@@ -1,8 +1,8 @@
 using System.Text;
 
-namespace BasicEC.Secret.Data
+namespace BasicEC.Secret.Model.Rsa
 {
-    public class RsaKeyStoreInfo
+    public class RsaKeyInfo
     {
         public string Name { get; init; }
 

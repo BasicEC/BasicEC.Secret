@@ -1,6 +1,8 @@
 using System.Threading.Tasks;
 using BasicEC.Secret.Model.Commands.Keys;
+using BasicEC.Secret.Model.ProgressBar;
 using BasicEC.Secret.Model.Rsa;
+using Microsoft.Extensions.DependencyInjection;
 
 namespace BasicEC.Secret.Model.Commands
 {
@@ -11,28 +13,55 @@ namespace BasicEC.Secret.Model.Commands
 
     public class CommandExecutor : ICommandExecutor
     {
+        private readonly ServiceProvider _serviceProvider;
+
+        public CommandExecutor(ServiceProvider serviceProvider)
+        {
+            _serviceProvider = serviceProvider;
+        }
+
         public async Task ExecuteAsync(ICommand command)
         {
+            var store = _serviceProvider.GetRequiredService<IRsaStore>();
+            var statusWriter = _serviceProvider.GetRequiredService<IProgressStatusWriter>();
             switch (command)
             {
                 case DecryptCommand cmd:
-                    await RsaService.DecryptAsync(cmd.Key, cmd.File, cmd.Output, cmd.Workers);
+                {
+                    var rsa = store.GetKey(cmd.Key, true);
+                    var conveyor = new FileDataConveyor(cmd.File, cmd.Output, rsa.GetEncryptedDataLength(), _ => rsa.Decrypt(_), cmd.Workers);
+                    using var _ = conveyor.SubscribeOnProgressStatus(statusWriter);
+                    await conveyor.ProcessDataAsync();
                     break;
+                }
                 case EncryptCommand cmd:
-                    await RsaService.EncryptAsync(cmd.Key, cmd.File, cmd.Output, cmd.Workers);
+                {
+                    var rsa = store.GetKey(cmd.Key, false);
+                    var conveyor = new FileDataConveyor(cmd.File, cmd.Output, rsa.GetMaxDataLength(), _ => rsa.Encrypt(_), cmd.Workers);
+                    using var _ = conveyor.SubscribeOnProgressStatus(statusWriter);
+                    await conveyor.ProcessDataAsync();
                     break;
+                }
                 case GenRsaKeyCommand cmd:
-                    RsaService.GenerateRsaKey(cmd.Name, cmd.Length);
+                {
+                    store.GenerateRsaKey(cmd.Name, cmd.Length);
                     break;
+                }
                 case ImportRsaKeyCommand cmd:
-                    RsaService.ImportKeyToStore(cmd.Name, cmd.Input);
+                {
+                    store.ImportKeyToStore(cmd.Name, cmd.Input);
                     break;
+                }
                 case ListRsaKeysCommand _:
-                    RsaService.ListStoredKeys();
+                {
+                    store.ListStoredKeys();
                     break;
+                }
                 case RemoveRsaKeyCommand cmd:
-                    RsaService.RemoveKey(cmd.Name, cmd.Force);
+                {
+                    store.RemoveKey(cmd.Name, cmd.Force);
                     break;
+                }
             }
         }
     }
