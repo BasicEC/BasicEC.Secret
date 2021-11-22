@@ -18,7 +18,9 @@ namespace BasicEC.Secret.Model.Extensions
 
     public static class ParserVerbExtensions
     {
-        public static ParserResult<object> ParseVerbs(this Parser parser, ArraySegment<string> args, params Type[] types)
+        public static ParserResult<object> ParseVerbs(this Parser parser,
+                                                      ArraySegment<string> args,
+                                                      params Type[] types)
         {
             if (args.Count == 0 || args[0].StartsWith("-"))
             {
@@ -32,7 +34,7 @@ namespace BasicEC.Secret.Model.Extensions
                 {
                     continue;
                 }
-                if (type.GetCustomAttribute<SubVerbsAttribute>() is {} subAttr)
+                if (type.GetCustomAttribute<SubVerbsAttribute>() is { } subAttr)
                 {
                     return ParseVerbs(parser, args[1..], subAttr.Types);
                 }

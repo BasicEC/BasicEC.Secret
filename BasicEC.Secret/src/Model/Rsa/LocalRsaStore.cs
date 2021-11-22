@@ -13,7 +13,7 @@ namespace BasicEC.Secret.Model.Rsa
         private const string PrivateKeyFileName = "rsa";
         private const string PublicKeyFileName = "rsa.pub";
 
-        private readonly Lazy<DirectoryInfo> _storeLazy = new(() =>
+        private readonly Lazy<DirectoryInfo> _storeLazy = new (() =>
         {
             const string rsaStoreEnv = "BASIC_RSA_STORE";
             const string defaultRsaStore = "rsa_store";

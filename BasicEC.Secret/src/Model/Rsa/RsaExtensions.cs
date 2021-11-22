@@ -27,7 +27,7 @@ namespace BasicEC.Secret.Model.Rsa
         #region Encrypt/Decrypt Utils
 
         private static readonly Dictionary<RSAEncryptionPadding, int> PaddingLimitDic =
-            new()
+            new ()
             {
                 [RSAEncryptionPadding.Pkcs1] = 11,
                 [RSAEncryptionPadding.OaepSHA1] = 42,
