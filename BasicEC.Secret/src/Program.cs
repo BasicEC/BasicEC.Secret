@@ -20,10 +20,10 @@ namespace BasicEC.Secret
 
         public static async Task Main(string[] args)
         {
-            var root = new FileInfo(Assembly.GetExecutingAssembly().Location);
+            var root = new FileInfo(AppContext.BaseDirectory);
             RootDir = root.Directory;
             Log.Logger = new LoggerConfiguration()
-                .MinimumLevel.Information()
+                .MinimumLevel.Warning()
                 .WriteTo.File($"{RootDir!.FullName}/logs/log-.txt", rollingInterval: RollingInterval.Month)
                 .CreateLogger();
 
