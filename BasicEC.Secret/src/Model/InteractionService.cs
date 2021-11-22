@@ -3,7 +3,7 @@ using System.Collections.Generic;
 
 namespace BasicEC.Secret.Model
 {
-    public static class ConsoleService
+    public static class InteractionService
     {
         public static bool Confirm(string question)
         {
@@ -17,9 +17,15 @@ namespace BasicEC.Secret.Model
             }
         }
 
-        public static void Write(IEnumerable<object> list)
+        public static void Show(IEnumerable<object> list)
         {
             Console.WriteLine(string.Join('\n', list));
+        }
+
+        public static void ShowAtTheBeginning(string str)
+        {
+            Console.SetCursorPosition(0, Console.CursorTop);
+            Console.Write(str);
         }
     }
 }

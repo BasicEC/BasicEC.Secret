@@ -5,19 +5,24 @@ using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
 using BasicEC.Secret.Model.Extensions;
+using BasicEC.Secret.Model.ProgressBar;
 using Serilog;
 
 namespace BasicEC.Secret.Model
 {
-    public class FileDataConveyor
+    public class FileDataConveyor : IProgressStatusProvider
     {
-        private const int MaxBatchSize = 2048;
+        private const int MaxBatchSize = 1024;
 
         private readonly int _threads;
         private readonly int _batchSize;
         private readonly FileInfo _source;
         private readonly FileInfo _destination;
         private readonly Func<byte[], byte[]> _processor;
+
+        private event Action<ProgressStatus> OnBatchProcessed;
+
+        public readonly long TotalBatches;
 
         public FileDataConveyor(string source,
                                 string destination,
@@ -33,6 +38,7 @@ namespace BasicEC.Secret.Model
             _source = source.CheckFileExists();
             _destination = new FileInfo(destination);
             _processor = processor;
+            TotalBatches = Math.DivRem(_source.Length, batchSize, out var rem) + Math.Sign(rem);
         }
 
         [SuppressMessage("ReSharper", "AccessToDisposedClosure")]
@@ -56,12 +62,15 @@ namespace BasicEC.Secret.Model
             destination.Enqueue(new DataEvent { Seq = @event.Seq, Data = _processor.Invoke(@event.Data) });
         }
 
-        private static Func<DataEvent, Task> CreateWriteProcessor(Stream fs)
+        private Func<DataEvent, Task> CreateWriteProcessor(Stream fs)
         {
             var writeEvents = new SortedList<int, byte[]>();
             var cursor = 0;
+            var processedBatches = 0;
             return async @event =>
             {
+                OnBatchProcessed?.Invoke(new ProgressStatus
+                    { ProcessedTasks = ++processedBatches, TotalTasks = TotalBatches });
                 writeEvents.Add(@event.Seq, @event.Data);
 
                 if (@event.Seq != cursor)
@@ -111,10 +120,25 @@ namespace BasicEC.Secret.Model
             } while (read > 0);
         }
 
+        public IDisposable SubscribeOnProgressMovedForward(Action<ProgressStatus> action)
+        {
+            OnBatchProcessed += action;
+            return new Subscription(() => OnBatchProcessed -= action);
+        }
+
         private class DataEvent
         {
             public byte[] Data { get; init; }
-            public int Seq { get; set; }
+            public int Seq { get; init; }
+        }
+
+        private class Subscription : IDisposable
+        {
+            private readonly Action _dispose;
+
+            public Subscription(Action dispose) { _dispose = dispose; }
+
+            public void Dispose() { _dispose?.Invoke(); }
         }
     }
 }

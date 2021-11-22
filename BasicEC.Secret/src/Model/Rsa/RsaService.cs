@@ -1,6 +1,7 @@
 using System.Security.Cryptography;
 using System.Threading.Tasks;
 using BasicEC.Secret.Model.Commands;
+using BasicEC.Secret.Model.ProgressBar;
 
 namespace BasicEC.Secret.Model.Rsa
 {
@@ -44,6 +45,7 @@ namespace BasicEC.Secret.Model.Rsa
         {
             var rsa = RsaIOService.ReadKey(key, false);
             var conveyor = new FileDataConveyor(input, output, rsa.GetMaxDataLength(), _ => rsa.Encrypt(_), workers);
+            using var writer = new ConsoleProgressStatusWriter(conveyor);
             await conveyor.ProcessDataAsync();
         }
 
@@ -51,6 +53,7 @@ namespace BasicEC.Secret.Model.Rsa
         {
             var rsa = RsaIOService.ReadKey(key, true);
             var conveyor = new FileDataConveyor(input, output, rsa.GetEncryptedDataLength(), _ => rsa.Decrypt(_), workers);
+            using var writer = new ConsoleProgressStatusWriter(conveyor);
             await conveyor.ProcessDataAsync();
         }
     }

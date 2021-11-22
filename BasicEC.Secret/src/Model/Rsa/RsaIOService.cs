@@ -62,7 +62,7 @@ namespace BasicEC.Secret.Model.Rsa
                 });
             }
 
-            ConsoleService.Write(keys);
+            InteractionService.Show(keys);
         }
 
         public static void RemoveKey(string name, bool force)
@@ -74,7 +74,7 @@ namespace BasicEC.Secret.Model.Rsa
                 return;
             }
 
-            if (!force && !ConsoleService.Confirm($"Are you sure you want remove rsa key {name}"))
+            if (!force && !InteractionService.Confirm($"Are you sure you want remove rsa key {name}"))
             {
                 return;
             }
@@ -111,7 +111,6 @@ namespace BasicEC.Secret.Model.Rsa
                 pem = reader.ReadToEnd();
             }
 
-            // todo catch exceptions
             rsa.ImportFromPem(pem);
 
             return rsa;

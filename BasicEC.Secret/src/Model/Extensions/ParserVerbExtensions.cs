@@ -39,13 +39,5 @@ namespace BasicEC.Secret.Model.Extensions
             }
             return parser.ParseArguments(args, types);
         }
-
-        public static async Task WithParsedAsync<T>(this ParserResult<object> result, Func<T, Task> action)
-        {
-            if (result is Parsed<object> { Value: T } parsed)
-            {
-                await action((T)parsed.Value);
-            }
-        }
     }
 }
