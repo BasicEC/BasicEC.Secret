@@ -3,7 +3,8 @@ using System.Collections.Concurrent;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
-using Serilog;
+using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Logging.Abstractions;
 
 namespace BasicEC.Secret
 {
@@ -14,17 +15,18 @@ namespace BasicEC.Secret
         private readonly ManualResetEvent _processingFinishedEvent;
         private readonly CancellationTokenSource _cts;
         private readonly Task[] _jobs;
+        private readonly ILogger _logger;
 
         private int _threads;
 
         public readonly string Name;
 
-        public ProcessingQueue(string name, Action<T> processor, int threads = 1)
-            : this(name, async data => processor(data), threads)
+        public ProcessingQueue(string name, Action<T> processor, int threads = 1, ILogger logger = null)
+            : this(name, async data => processor(data), threads, logger)
         {
         }
 
-        public ProcessingQueue(string name, Func<T, Task> processor, int threads = 1)
+        public ProcessingQueue(string name, Func<T, Task> processor, int threads = 1, ILogger logger = null)
         {
             Name = name;
             _queue = new ConcurrentQueue<T>();
@@ -33,6 +35,7 @@ namespace BasicEC.Secret
             _cts = new CancellationTokenSource();
             _jobs = Enumerable.Range(0, threads)
                 .Select(_ => Task.Run(async () => await ProcessAsync(processor, _), _cts.Token)).ToArray();
+            _logger = logger ?? NullLogger.Instance;
         }
 
         private async Task ProcessAsync(Func<T, Task> processor, int thread)
@@ -52,7 +55,7 @@ namespace BasicEC.Secret
                         }
                         catch (Exception e)
                         {
-                            Log.Logger.Warning(e, "Unexpected error during queue processing");
+                            _logger.LogWarning(e, "Unexpected error during queue processing");
                         }
                     }
 
@@ -62,12 +65,12 @@ namespace BasicEC.Secret
                         _processingFinishedEvent.Set();
                     }
 
-                    Log.Logger.Verbose("{Name} {Thread} All available data is processed", Name, thread);
+                    _logger.LogTrace("{Name} {Thread} All available data is processed", Name, thread);
                     _enqueueEvent.WaitOne();
                 }
                 catch (OperationCanceledException e) when (e.CancellationToken.Equals(_cts.Token))
                 {
-                    Log.Logger.Verbose("{Name} {Thread} Processing is cancelled", Name, thread);
+                    _logger.LogTrace("{Name} {Thread} Processing is cancelled", Name, thread);
                     break;
                 }
             }

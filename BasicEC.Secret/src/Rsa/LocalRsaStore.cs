@@ -4,7 +4,7 @@ using System.IO;
 using System.Security.Cryptography;
 using BasicEC.Secret.Exceptions;
 using BasicEC.Secret.Extensions;
-using Serilog;
+using Microsoft.Extensions.Logging;
 
 namespace BasicEC.Secret.Rsa
 {
@@ -13,22 +13,30 @@ namespace BasicEC.Secret.Rsa
         private const string PrivateKeyFileName = "rsa";
         private const string PublicKeyFileName = "rsa.pub";
 
-        private readonly Lazy<DirectoryInfo> _storeLazy = new (() =>
-        {
-            const string rsaStoreEnv = "BASIC_RSA_STORE";
-            const string defaultRsaStore = "rsa_store";
-            var path = Environment.GetEnvironmentVariable(rsaStoreEnv);
-            path ??= Path.Combine(AppContext.BaseDirectory, defaultRsaStore);
-            var dir = new DirectoryInfo(path);
-            if (dir.Exists) return dir;
+        private readonly ILogger _logger;
 
-            Log.Logger.Information("Create rsa store since it doesn't exists");
-            dir.Create();
-
-            return dir;
-        });
+        private readonly Lazy<DirectoryInfo> _storeLazy;
 
         private DirectoryInfo Store => _storeLazy.Value;
+
+        public LocalRsaStore(ILoggerProvider loggerProvider)
+        {
+            _logger = loggerProvider.CreateLogger(nameof(LocalRsaStore));
+            _storeLazy = new Lazy<DirectoryInfo>(() =>
+            {
+                const string rsaStoreEnv = "BASIC_RSA_STORE";
+                const string defaultRsaStore = "rsa_store";
+                var path = Environment.GetEnvironmentVariable(rsaStoreEnv);
+                path ??= Path.Combine(AppContext.BaseDirectory, defaultRsaStore);
+                var dir = new DirectoryInfo(path);
+                if (dir.Exists) return dir;
+
+                _logger.LogInformation("Create rsa store since it doesn't exists");
+                dir.Create();
+
+                return dir;
+            });
+        }
 
         public void ImportKeyToStore(string name, string filePath)
         {
@@ -97,7 +105,7 @@ namespace BasicEC.Secret.Rsa
             var keysDir = new DirectoryInfo(Path.Combine(Store.FullName, name));
             if (!keysDir.Exists)
             {
-                Log.Logger.Information("Rsa key ({Name}) not found", name);
+                _logger.LogInformation("Rsa key ({Name}) not found", name);
                 return;
             }
 
@@ -120,7 +128,7 @@ namespace BasicEC.Secret.Rsa
             var keysDir = new DirectoryInfo(Path.Combine(Store.FullName, name));
             if (!keysDir.Exists)
             {
-                Log.Logger.Information("Create store for key {Name}", name);
+                _logger.LogInformation("Create store for key {Name}", name);
                 keysDir.Create();
             }
 

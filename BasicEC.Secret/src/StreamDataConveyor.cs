@@ -7,7 +7,8 @@ using System.Reactive.Subjects;
 using System.Threading.Tasks;
 using BasicEC.Secret.Extensions;
 using BasicEC.Secret.ProgressBar;
-using Serilog;
+using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Logging.Abstractions;
 
 namespace BasicEC.Secret
 {
@@ -21,6 +22,7 @@ namespace BasicEC.Secret
         private readonly Stream _destination;
         private readonly Func<byte[], byte[]> _processor;
         private readonly BehaviorSubject<ProgressStatus> _processStatus;
+        private readonly ILogger _logger;
 
         public readonly long TotalBatches;
 
@@ -28,7 +30,8 @@ namespace BasicEC.Secret
                                   Stream destination,
                                   int batchSize,
                                   Func<byte[], byte[]> processor,
-                                  int threads = 1)
+                                  int threads = 1,
+                                  ILogger logger = null)
         {
             if (batchSize is > MaxBatchSize or <= 0)
             {
@@ -52,18 +55,20 @@ namespace BasicEC.Secret
                 ProcessedTasks = 0,
                 TotalTasks = TotalBatches
             });
+            _logger = logger ?? NullLogger.Instance;
         }
 
         [SuppressMessage("ReSharper", "AccessToDisposedClosure")]
         public async Task ProcessDataAsync()
         {
-            using var writingQueue = new ProcessingQueue<DataEvent>("WritingQueue", CreateWriteProcessor());
+            using var writingQueue =
+                new ProcessingQueue<DataEvent>("WritingQueue", CreateWriteProcessor(), logger: _logger);
             using var processingQueue =
-                new ProcessingQueue<DataEvent>("ProcessingQueue", _ => ProcessData(writingQueue, _), _threads);
+                new ProcessingQueue<DataEvent>("ProcessingQueue", _ => ProcessData(writingQueue, _), _threads, _logger);
 
             await ReadAsync(processingQueue);
 
-            Log.Logger.Verbose("Waiting for the end of the processing");
+            _logger.LogTrace("Waiting for the end of the processing");
             processingQueue.WaitUntilProcessingFinished();
             writingQueue.WaitUntilProcessingFinished();
         }
@@ -120,7 +125,7 @@ namespace BasicEC.Secret
             do
             {
                 read = await _source.ReadAsync(buffer);
-                Log.Logger.Verbose("Read batch of data. Size: {Size}", read);
+                _logger.LogTrace("Read batch of data. Size: {Size}", read);
 
                 if (read < bufferSize)
                 {

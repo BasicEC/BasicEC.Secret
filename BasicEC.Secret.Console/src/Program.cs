@@ -8,6 +8,7 @@ using BasicEC.Secret.ProgressBar;
 using BasicEC.Secret.Rsa;
 using CommandLine;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Logging;
 using Serilog;
 
 namespace BasicEC.Secret.Console
@@ -16,9 +17,10 @@ namespace BasicEC.Secret.Console
     {
         public static async Task Main(string[] args)
         {
-            Log.Logger = new LoggerConfiguration()
-                .MinimumLevel.Warning()
+            using var logger = new LoggerConfiguration()
+                .MinimumLevel.Information()
                 .WriteTo.File($"{AppContext.BaseDirectory}/logs/log-.txt", rollingInterval: RollingInterval.Month)
+                .WriteTo.Console()
                 .CreateLogger();
 
             var serviceProvider = new ServiceCollection()
@@ -26,6 +28,12 @@ namespace BasicEC.Secret.Console
                 .AddSingleton<IRsaStore, LocalRsaStore>()
                 .AddSingleton<IRsaService, RsaService>()
                 .AddSingleton<ICommandExecutor, ConsoleCommandExecutor>()
+                .AddLogging(builder =>
+                {
+                    builder.ClearProviders();
+                    // ReSharper disable once AccessToDisposedClosure
+                    builder.AddSerilog(logger);
+                })
                 .BuildServiceProvider();
 
             var commands = new[]
@@ -35,15 +43,8 @@ namespace BasicEC.Secret.Console
                 typeof(RsaKeyCommands),
             };
 
-            try
-            {
-                await Parser.Default.ParseVerbs(args, commands)
-                    .WithParsedAsync<ICommand>(_ => RunCommandAsync(_, serviceProvider));
-            }
-            finally
-            {
-                Log.CloseAndFlush();
-            }
+            await Parser.Default.ParseVerbs(args, commands)
+                .WithParsedAsync<ICommand>(_ => RunCommandAsync(_, serviceProvider));
         }
 
         private static async Task RunCommandAsync(ICommand cmd, IServiceProvider serviceProvider)
@@ -55,11 +56,11 @@ namespace BasicEC.Secret.Console
             }
             catch (CommandException e)
             {
-                Log.Logger.Error(e.Message);
+                System.Console.WriteLine(e.Message);
             }
             catch (Exception e)
             {
-                Log.Logger.Error(e, "Unexpected error");
+                System.Console.WriteLine($"Unexpected error: {e.Message}\nSee logs for more information");
             }
         }
     }
