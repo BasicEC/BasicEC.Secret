@@ -1,3 +1,4 @@
+using System.Collections.Generic;
 using System.Security.Cryptography;
 
 namespace BasicEC.Secret.Model.Rsa
@@ -6,7 +7,7 @@ namespace BasicEC.Secret.Model.Rsa
     {
         void ImportKeyToStore(string name, string filePath);
         void GenerateRsaKey(string name, int length);
-        void ListStoredKeys();
+        IEnumerable<RsaKeyInfo> ListStoredKeys();
         RSACryptoServiceProvider GetKey(string name, bool isPrivate);
         void RemoveKey(string name, bool force);
     }

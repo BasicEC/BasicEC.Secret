@@ -11,33 +11,41 @@ using Serilog;
 
 namespace BasicEC.Secret.Model
 {
-    public class FileDataConveyor : IProgressStatusProvider
+    public class StreamDataConveyor : IProgressStatusProvider
     {
         private const int MaxBatchSize = 1024;
 
         private readonly int _threads;
         private readonly int _batchSize;
-        private readonly FileInfo _source;
-        private readonly FileInfo _destination;
+        private readonly Stream _source;
+        private readonly Stream _destination;
         private readonly Func<byte[], byte[]> _processor;
         private readonly BehaviorSubject<ProgressStatus> _processStatus;
 
         public readonly long TotalBatches;
 
-        public FileDataConveyor(string source,
-                                string destination,
+        public StreamDataConveyor(Stream source,
+                                Stream destination,
                                 int batchSize,
                                 Func<byte[], byte[]> processor,
                                 int threads = 1)
         {
-            if (batchSize > MaxBatchSize)
-                throw new ArgumentOutOfRangeException(nameof(batchSize), $"Should be between 0 and {MaxBatchSize}");
+            if (batchSize is > MaxBatchSize or <= 0)
+            {
+                throw new ArgumentOutOfRangeException(nameof(batchSize), $"Should be between 1 and {MaxBatchSize}");
+            }
+
+            if (threads <= 0)
+            {
+                throw new ArgumentOutOfRangeException(nameof(threads), "Should greater than 0");
+            }
+
+            _source = source ?? throw new ArgumentNullException(nameof(source));
+            _destination = destination ?? throw new ArgumentNullException(nameof(destination));
+            _processor = processor ?? throw new ArgumentNullException(nameof(processor));
 
             _threads = threads;
             _batchSize = batchSize;
-            _source = source.CheckFileExists();
-            _destination = new FileInfo(destination);
-            _processor = processor;
             TotalBatches = Math.DivRem(_source.Length, batchSize, out var rem) + Math.Sign(rem);
             _processStatus = new BehaviorSubject<ProgressStatus>(new ProgressStatus
             {
@@ -49,13 +57,11 @@ namespace BasicEC.Secret.Model
         [SuppressMessage("ReSharper", "AccessToDisposedClosure")]
         public async Task ProcessDataAsync()
         {
-            await using var writeStream = _destination.Open(FileMode.Create, FileAccess.Write);
-
-            using var writingQueue = new ProcessingQueue<DataEvent>("WritingQueue", CreateWriteProcessor(writeStream));
+            using var writingQueue = new ProcessingQueue<DataEvent>("WritingQueue", CreateWriteProcessor());
             using var processingQueue =
                 new ProcessingQueue<DataEvent>("ProcessingQueue", _ => ProcessData(writingQueue, _), _threads);
 
-            await ReadFileAsync(processingQueue);
+            await ReadAsync(processingQueue);
 
             Log.Logger.Verbose("Waiting for the end of the processing");
             processingQueue.WaitUntilProcessingFinished();
@@ -67,7 +73,7 @@ namespace BasicEC.Secret.Model
             destination.Enqueue(new DataEvent { Seq = @event.Seq, Data = _processor.Invoke(@event.Data) });
         }
 
-        private Func<DataEvent, Task> CreateWriteProcessor(Stream fs)
+        private Func<DataEvent, Task> CreateWriteProcessor()
         {
             var writeEvents = new SortedList<int, byte[]>();
             var cursor = 0;
@@ -90,7 +96,7 @@ namespace BasicEC.Secret.Model
                 var count = 0;
                 var first = writeEvents.First().Key;
                 var readyToWrite = writeEvents.TakeWhile(_ => _.Key - first == count++).ToList();
-                await fs.WriteAsync(readyToWrite.SelectMany(_ => _.Value).ToArray());
+                await _destination.WriteAsync(readyToWrite.SelectMany(_ => _.Value).ToArray());
                 cursor = readyToWrite.Last().Key + 1;
                 foreach (var pair in readyToWrite)
                 {
@@ -104,9 +110,8 @@ namespace BasicEC.Secret.Model
             };
         }
 
-        private async Task ReadFileAsync(ProcessingQueue<DataEvent> destination)
+        private async Task ReadAsync(ProcessingQueue<DataEvent> destination)
         {
-            await using var readStream = _source.OpenRead();
             var bufferSize = MaxBatchSize / _batchSize * _batchSize;
 
             int read, seq = 0;
@@ -114,7 +119,7 @@ namespace BasicEC.Secret.Model
             var events = new List<DataEvent>();
             do
             {
-                read = await readStream.ReadAsync(buffer);
+                read = await _source.ReadAsync(buffer);
                 Log.Logger.Verbose("Read batch of data. Size: {Size}", read);
 
                 if (read < bufferSize)

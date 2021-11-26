@@ -18,7 +18,7 @@ namespace BasicEC.Secret.Model.Rsa
             const string rsaStoreEnv = "BASIC_RSA_STORE";
             const string defaultRsaStore = "rsa_store";
             var path = Environment.GetEnvironmentVariable(rsaStoreEnv);
-            path ??= Path.Combine(Program.RootDir.FullName, defaultRsaStore);
+            path ??= Path.Combine(AppContext.BaseDirectory, defaultRsaStore);
             var dir = new DirectoryInfo(path);
             if (dir.Exists) return dir;
 
@@ -60,7 +60,7 @@ namespace BasicEC.Secret.Model.Rsa
             WriteKey(rsa, publicKeyFile, false);
         }
 
-        public void ListStoredKeys()
+        public IEnumerable<RsaKeyInfo> ListStoredKeys()
         {
             var keys = new List<RsaKeyInfo>();
             foreach (var inner in Store.EnumerateDirectories())
@@ -73,7 +73,7 @@ namespace BasicEC.Secret.Model.Rsa
                 });
             }
 
-            InteractionService.Show(keys);
+            return keys;
         }
 
         public RSACryptoServiceProvider GetKey(string name, bool isPrivate)
@@ -101,7 +101,7 @@ namespace BasicEC.Secret.Model.Rsa
                 return;
             }
 
-            if (!force && !InteractionService.Confirm($"Are you sure you want remove rsa key {name}"))
+            if (!force && !Confirm($"Are you sure you want remove rsa key {name}"))
             {
                 return;
             }
@@ -151,6 +151,18 @@ namespace BasicEC.Secret.Model.Rsa
             var pem = @private ? rsa.ExportPrivateKeyAsPem() : rsa.ExportPublicKeyAsPem();
             using var writer = new StreamWriter(file.OpenWrite());
             writer.Write(pem);
+        }
+
+        private static bool Confirm(string question)
+        {
+            Console.WriteLine($"{question} (yes/no)?");
+            while (true)
+            {
+                var answer = Console.ReadLine();
+                if ("yes".Equals(answer)) return true;
+                if ("no".Equals(answer)) return false;
+                Console.WriteLine("Please type 'yes' or 'no':");
+            }
         }
     }
 }

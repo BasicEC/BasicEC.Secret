@@ -21,7 +21,8 @@ namespace BasicEC.Secret.Model.ProgressBar
             if (@new - _percentageOfProgress < 0.1 && !isLast) return;
 
             _percentageOfProgress = @new;
-            InteractionService.ShowAtTheBeginning($"Progress: {_percentageOfProgress:F1}%");
+            Console.SetCursorPosition(0, Console.CursorTop);
+            Console.Write($"Progress: {_percentageOfProgress:F1}%");
         }
     }
 }
