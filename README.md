@@ -50,3 +50,8 @@ By default, all keys are stored in `rsa_store` directory next to the application
 ```shell
 $ dotnet publish BasicEC.Secret.Console -r linux-x64 -c Release -p:PublishSingleFile=true
 ```
+
+### Windows
+```shell
+> dotnet publish BasicEC.Secret.Console -r win-x64 -c Release -p:PublishSingleFile=true -p:IncludeNativeLibrariesForSelfExtract=true
+```
